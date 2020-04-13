@@ -49,9 +49,6 @@ fn main() -> Result<()> {
         audio.run();
     }
 
-    // Run the tweaking gui
-    const_tweaker::run()?;
-
     while window.is_open() {
         // Clear the buffer with a black color
         {
