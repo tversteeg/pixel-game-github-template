@@ -35,18 +35,34 @@ You will need an up-to-date [Rust](https://rustup.rs/) setup.
 
 ### Linux Dependencies
 
-To build it on linux you will need the `xorg` & `alsa` development libraries & `cmake`:
+To build it on linux you will need the X11, OpenGL & Alsa development libraries:
 
 ```bash
-sudo apt install xorg-dev cmake libasound2-dev
+sudo apt install libasound2-dev libx11-dev libxi-dev libgl1-mesa-dev
 ```
 
-### Compile
+## Run
 
-You just need to run the following to compile the game after you've installed the dependencies:
+### Native
+
+You just need to run the following to compile & run the game after you've installed the dependencies:
 
 ```bash
-cargo build --release
+cargo run --release
 ```
 
-This will put the executable of the game in `target/release/`.
+### WASM
+
+Add the `wasm32` target to Rust & build it with that target:
+
+```bash
+rustup target add wasm32-unknown-unknown
+cargo build --release --target wasm32-unknown-unknown
+```
+
+Now we have to host the website:
+
+```bash
+cargo install basic-http-server
+basic-http-server www
+```
