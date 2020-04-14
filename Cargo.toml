@@ -18,7 +18,7 @@ cpal = "0.11.0"
 minifb = "0.16.0"
 specs = "0.16.1"
 specs-blit = "0.3.3"
-usfx = "0.1.2"
+usfx = "0.1.3"
 vek = "0.10.1"
 
 [dev-dependencies]
