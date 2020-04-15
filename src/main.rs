@@ -1,15 +1,20 @@
 /* mod audio; */
+mod input;
+mod physics;
 mod player;
 mod render;
 mod sprite;
 
-use crate::render::Render;
+use crate::{input::Input, render::Render};
 use anyhow::Result;
-use miniquad::{conf::Conf, Context, EventHandler, UserData};
-use specs_blit::{specs::prelude::*, PixelBuffer, RenderSystem, Sprite};
+use miniquad::{
+    conf::{Conf, Loading},
+    Context, EventHandler, KeyCode, KeyMods, UserData,
+};
+use specs_blit::{specs::prelude::*, PixelBuffer};
 
-const WIDTH: usize = 800;
-const HEIGHT: usize = 600;
+const WIDTH: usize = 400;
+const HEIGHT: usize = 400;
 
 /// Our game state.
 struct Game<'a, 'b> {
@@ -27,18 +32,32 @@ impl<'a, 'b> Game<'a, 'b> {
         // Setup the ECS system
         let mut world = World::new();
 
+        // Load the game components
+        world.register::<physics::Position>();
+        world.register::<physics::Velocity>();
+        world.register::<physics::Speed>();
+
+        world.register::<player::Player>();
+
         // Load the sprite rendering component
-        world.register::<Sprite>();
+        world.register::<specs_blit::Sprite>();
+
         // Add the pixel buffer as a resource so it can be accessed from the RenderSystem later, to be
         // updated every frame
         world.insert(PixelBuffer::new(WIDTH, HEIGHT));
+
+        // Add the input system
+        world.insert(Input::default());
 
         // Add the audio system
         /* world.insert(Audio::new()); */
 
         // Setup the dispatcher with the blit system
         let dispatcher = DispatcherBuilder::new()
-            .with_thread_local(RenderSystem)
+            .with(player::PlayerSystem, "player", &[])
+            .with(physics::VelocitySystem, "velocity", &["player"])
+            .with(sprite::SpritePositionSystem, "sprite_pos", &["velocity"])
+            .with_thread_local(specs_blit::RenderSystem)
             .build();
 
         /*
@@ -52,7 +71,7 @@ impl<'a, 'b> Game<'a, 'b> {
         // Spawn the initial game elements
         player::spawn_player(&mut world)?;
 
-        // Setup the OpenGL render part.
+        // Setup the OpenGL render part
         let render = Render::new(ctx, WIDTH, HEIGHT);
 
         Ok(Self {
@@ -82,6 +101,22 @@ impl<'a, 'b> EventHandler for Game<'a, 'b> {
         // Clear the buffer with a black color
         buffer.clear(0);
     }
+
+    fn key_up_event(&mut self, _ctx: &mut Context, keycode: KeyCode, _keymods: KeyMods) {
+        // Pass the input to the resource
+        (*self.world.write_resource::<Input>()).handle_key(keycode, false);
+    }
+
+    fn key_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        keycode: KeyCode,
+        _keymods: KeyMods,
+        _repeat: bool,
+    ) {
+        // Pass the input to the resource
+        (*self.world.write_resource::<Input>()).handle_key(keycode, true);
+    }
 }
 
 fn main() {
@@ -90,6 +125,7 @@ fn main() {
             window_title: concat!("replace_me - ", env!("CARGO_PKG_VERSION")).to_string(),
             window_width: WIDTH as i32,
             window_height: HEIGHT as i32,
+            loading: Loading::Embedded,
             ..Default::default()
         },
         |mut ctx| {

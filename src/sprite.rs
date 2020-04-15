@@ -1,9 +1,23 @@
+use crate::physics::Position;
 use anyhow::Result;
 use specs_blit::{
     blit::{BlitBuffer, Color},
-    SpriteRef,
+    specs::{Join, ReadStorage, System, WriteStorage},
+    Sprite, SpriteRef,
 };
 use sprite_gen::{MaskValue, Options};
+
+/// A system that connects sprites to the physics position.
+pub struct SpritePositionSystem;
+impl<'a> System<'a> for SpritePositionSystem {
+    type SystemData = (ReadStorage<'a, Position>, WriteStorage<'a, Sprite>);
+
+    fn run(&mut self, (pos, mut sprite): Self::SystemData) {
+        for (pos, sprite) in (&pos, &mut sprite).join() {
+            sprite.set_pos(pos.x as i32, pos.y as i32);
+        }
+    }
+}
 
 /// Generate a random sprite from a mask and return it as a blit buffer.
 pub fn generate(

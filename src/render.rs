@@ -1,5 +1,6 @@
 use miniquad::{graphics::*, Context};
 use specs_blit::PixelBuffer;
+use std::slice;
 
 const VERTEX: &str = r#"#version 100
 attribute vec2 pos;
@@ -114,16 +115,13 @@ impl Render {
     /// Render the pixel buffer.
     pub fn render(&mut self, ctx: &mut Context, buffer: &PixelBuffer) {
         // Convert the [u32] buffer to [u8]
-        let pixels = buffer.pixels();
-        let mut bytes = vec![0xFF; pixels.len() * 4];
-
-        pixels.into_iter().enumerate().for_each(|(index, pixel)| {
-            let index = index * 4;
-            // Convert [ARGB] to [R,G,B,A]
-            bytes[index] = (*pixel >> 16) as u8;
-            bytes[index + 1] = (*pixel >> 8) as u8;
-            bytes[index + 2] = *pixel as u8;
-        });
+        // Unsafe because the safe way to do this didn't have the same performance
+        let bytes = unsafe {
+            slice::from_raw_parts(
+                buffer.pixels().as_ptr() as *const u8,
+                buffer.pixels().len() * 4,
+            )
+        };
 
         // Update the texture
         self.texture.update(ctx, &bytes);
