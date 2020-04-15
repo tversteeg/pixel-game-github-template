@@ -14,7 +14,7 @@ use miniquad::{
 use specs_blit::{specs::prelude::*, PixelBuffer};
 
 const WIDTH: usize = 400;
-const HEIGHT: usize = 400;
+const HEIGHT: usize = 300;
 
 /// Our game state.
 struct Game<'a, 'b> {
@@ -99,7 +99,7 @@ impl<'a, 'b> EventHandler for Game<'a, 'b> {
         self.render.render(ctx, &buffer);
 
         // Clear the buffer with a black color
-        buffer.clear(0);
+        buffer.clear(0xFF000000);
     }
 
     fn key_up_event(&mut self, _ctx: &mut Context, keycode: KeyCode, _keymods: KeyMods) {
