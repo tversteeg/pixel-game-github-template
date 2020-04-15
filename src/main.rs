@@ -1,7 +1,10 @@
 /* mod audio; */
+mod player;
 mod render;
+mod sprite;
 
 use crate::render::Render;
+use anyhow::Result;
 use miniquad::{conf::Conf, Context, EventHandler, UserData};
 use specs_blit::{specs::prelude::*, PixelBuffer, RenderSystem, Sprite};
 
@@ -20,7 +23,7 @@ struct Game<'a, 'b> {
 
 impl<'a, 'b> Game<'a, 'b> {
     /// Setup the ECS and load the systems.
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context) -> Result<Self> {
         // Setup the ECS system
         let mut world = World::new();
 
@@ -46,14 +49,17 @@ impl<'a, 'b> Game<'a, 'b> {
         }
         */
 
+        // Spawn the initial game elements
+        player::spawn_player(&mut world)?;
+
         // Setup the OpenGL render part.
         let render = Render::new(ctx, WIDTH, HEIGHT);
 
-        Self {
+        Ok(Self {
             world,
             dispatcher,
             render,
-        }
+        })
     }
 }
 
@@ -74,7 +80,7 @@ impl<'a, 'b> EventHandler for Game<'a, 'b> {
         self.render.render(ctx, &buffer);
 
         // Clear the buffer with a black color
-        buffer.clear(0xFF);
+        buffer.clear(0);
     }
 }
 
@@ -86,6 +92,11 @@ fn main() {
             window_height: HEIGHT as i32,
             ..Default::default()
         },
-        |mut ctx| UserData::owning(Game::new(&mut ctx), ctx),
+        |mut ctx| {
+            UserData::owning(
+                Game::new(&mut ctx).expect("Setting up game state failed"),
+                ctx,
+            )
+        },
     );
 }
