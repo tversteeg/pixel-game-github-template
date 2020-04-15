@@ -1,10 +1,13 @@
 <h1 align="center">
-	replace_me 
+	replace_me<br/>
 	<a href="https://github.com/tversteeg/replace_me/releases">
 		<img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/linux.svg" width="18" height="18" />
 		<img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/apple.svg" width="18" height="18" />
 		<img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/windows.svg" width="18" height="18" />
 	</a>
+	<img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/mozillafirefox.svg" width="18" height="18" />
+	<img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/googlechrome.svg" width="18" height="18" />
+	<img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/safari.svg" width="18" height="18" />
 </h1>
 <p align="center">
 	A game, you can play!
