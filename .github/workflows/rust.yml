@@ -1,50 +1,83 @@
 name: CI
 on:
   push:
+    branches:
+      - master
     paths-ignore:
       - "docs/**"
       - "**.md"
   pull_request:
+    branches:
+      - master
     paths-ignore:
       - "docs/**"
       - "**.md"
 
 jobs:
   # Run the `rustfmt` code formatter
-  rustfmt:
-    name: Rustfmt [Formatter]
+  rust:
+    name: cargo fmt & cargo clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2
+
+      - name: install dependencies
+        # run: sudo apt-get install -y libasound2-dev libwayland-cursor0 libxkbcommon-dev libwayland-dev
+        run: sudo apt-get install -y libwayland-cursor0 libxkbcommon-dev libwayland-dev
+
+      - name: install rust
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
-          components: rustfmt
+          components: rustfmt clippy
           override: true
-      - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
+
+      - name: cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all
+
+      - name: cargo fmt
+        uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
-  # Ensure that the project could be successfully compiled
-  cargo_check:
-    name: Compile
+  wasm:
+    name: wasm compile & deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - name: Install dependencies
-        run: sudo apt-get install -y libasound2-dev libwayland-cursor0 libxkbcommon-dev libwayland-dev
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2
+
+      - name: install rust
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
+          target: wasm32-unknown-unknown
+
+      - name: cargo build --release
+        uses: actions-rs/cargo@v1
         with:
-          command: check
-          args: --all
+          command: build
+          args: --release --target wasm32-unknown-unknown
+
+      - name: create www dir
+        run: |
+          mkdir www
+          cp target/wasm32-unknown-unknown/release/*.wasm www
+          cp *.html www
+
+      - name: deploy to github pages
+        uses: s0/git-publish-subdir-action@master
+        env:
+          REPO: self
+          BRANCH: gh-pages
+          FOLDER: www
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Build sources for every OS
   github_build:
